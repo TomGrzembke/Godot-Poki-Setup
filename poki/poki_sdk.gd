@@ -1,7 +1,6 @@
-## Minimal, static Poki SDK bridge for Godot 4 web exports.
-##
-## The custom Poki HTML shell initializes the JavaScript SDK before Godot starts,
-## so this autoload only needs to forward game events and Promise results.
+## The Poki HTML shell initializes the JavaScript SDK before Godot starts,
+## this autoload only forwards game events. You can configure the autoloads in project settings -> globals
+
 extends Node
 
 const SDK_NAME := "PokiSDK"
@@ -14,98 +13,89 @@ signal rewarded_break_failed(error: Variant)
 var _sdk = null
 var _retained_callbacks = []
 
+func _ready():
+	if not OS.has_feature("web"): return
 
-func _ready() -> void:
-	if OS.has_feature("web"):
-		_sdk = JavaScriptBridge.get_interface(SDK_NAME)
+	_sdk = JavaScriptBridge.get_interface(SDK_NAME)
 
 
 func is_available() -> bool:
 	return _sdk != null
 
 
-func game_loading_finished() -> void:
-	if is_available():
-		_sdk.gameLoadingFinished()
+func game_loading_finished():
+	if not is_available(): return
+
+	_sdk.gameLoadingFinished()
 
 
-func gameLoadingFinished() -> void:
-	game_loading_finished()
+func gameplay_start():
+	if not is_available(): return
+
+	_sdk.gameplayStart()
 
 
-func gameplay_start() -> void:
-	if is_available():
-		_sdk.gameplayStart()
+func gameplay_stop():
+	if not is_available(): return
+
+	_sdk.gameplayStop()
 
 
-func gameplayStart() -> void:
-	gameplay_start()
-
-
-func gameplay_stop() -> void:
-	if is_available():
-		_sdk.gameplayStop()
-
-
-func gameplayStop() -> void:
-	gameplay_stop()
-
-
-func commercial_break(on_start: Callable = Callable()) -> void:
+func commercial_break(on_start: Callable = Callable()):
 	if not is_available():
 		commercial_break_done.emit(null)
 		return
 
-	var resolve = _javascript_callback(func(_args: Array) -> void:
-		commercial_break_done.emit(null)
-	)
-	var reject = _javascript_callback(func(args: Array) -> void:
-		commercial_break_failed.emit(args[0] if not args.is_empty() else "Unknown Poki error")
-	)
+	var resolve = _javascript_callback(func(_args: Array): commercial_break_done.emit(null))
+
+	var reject = _javascript_callback(func(args: Array):commercial_break_failed.emit(args[0] if not args.is_empty() else "Unknown Poki error"))
+
 	var promise = null
+
 	if on_start.is_valid():
-		var start = _javascript_callback(func(_args: Array) -> void: on_start.call())
+		var start = _javascript_callback(func(_args: Array): on_start.call())
 		promise = _sdk.commercialBreak(start)
 	else:
 		promise = _sdk.commercialBreak()
+
 	promise.then(resolve, reject)
 
 
-func commercialBreak(on_start: Callable = Callable()) -> void:
+func commercialBreak(on_start: Callable = Callable()):
 	commercial_break(on_start)
 
 
-func rewarded_break(on_start_or_params = null) -> void:
+func rewarded_break(on_start_or_params = null):
 	if not is_available():
 		rewarded_break_done.emit(false)
 		return
 
-	var resolve = _javascript_callback(func(args: Array) -> void:
+	var resolve = _javascript_callback(func(args: Array):
 		rewarded_break_done.emit(bool(args[0]) if not args.is_empty() else false)
 	)
-	var reject = _javascript_callback(func(args: Array) -> void:
+	var reject = _javascript_callback(func(args: Array):
 		rewarded_break_failed.emit(args[0] if not args.is_empty() else "Unknown Poki error")
 	)
 	var promise = null
 	if on_start_or_params is Callable and on_start_or_params.is_valid():
-		var start = _javascript_callback(func(_args: Array) -> void: on_start_or_params.call())
+		var start = _javascript_callback(func(_args: Array): on_start_or_params.call())
 		promise = _sdk.rewardedBreak(start)
 	elif on_start_or_params is Dictionary:
 		var params: Dictionary = on_start_or_params.duplicate()
 		var on_start_callback = params.get("onStart")
 		if on_start_callback is Callable and on_start_callback.is_valid():
-			params["onStart"] = _javascript_callback(func(_args: Array) -> void: on_start_callback.call())
+			params["onStart"] = _javascript_callback(func(_args: Array): on_start_callback.call())
 		promise = _sdk.rewardedBreak(params)
 	else:
 		promise = _sdk.rewardedBreak()
 	promise.then(resolve, reject)
 
 
-func rewardedBreak(on_start_or_params = null) -> void:
+func rewardedBreak(on_start_or_params = null) :
 	rewarded_break(on_start_or_params)
 
 
-func measure(category: String, what: String, action: String) -> void:
+func measure(category: String, what: String, action: String):
 	if is_available():
 		_sdk.measure(category, what, action)
 
