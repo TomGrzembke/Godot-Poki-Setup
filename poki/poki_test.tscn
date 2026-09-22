@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://bbnqhaywv5sca"]
+
+[ext_resource type="Script" uid="uid://dlhpxpdm174l3" path="res://poki/poki_test.gd" id="1_tryrq"]
+
+[node name="PokiTest" type="Node2D" unique_id=361775869]
+
+[node name="Control" type="Control" parent="." unique_id=1093118835]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_tryrq")
+
+[node name="GameplayStart" type="Button" parent="Control" unique_id=860818046]
+layout_mode = 0
+offset_right = 236.0
+offset_bottom = 139.0
+text = "GameplayStart"
+
+[node name="GameplayStop" type="Button" parent="Control" unique_id=1312652796]
+layout_mode = 0
+offset_left = 280.0
+offset_right = 516.0
+offset_bottom = 139.0
+text = "GameplayStop"
+
+[node name="CommercialAd" type="Button" parent="Control" unique_id=348124068]
+layout_mode = 0
+offset_left = 558.0
+offset_right = 794.0
+offset_bottom = 139.0
+text = "CommercialAd
+"
+
+[connection signal="pressed" from="Control/GameplayStart" to="Control" method="_on_gameplay_start_pressed"]
+[connection signal="pressed" from="Control/GameplayStop" to="Control" method="_on_gameplay_stop_pressed"]
+[connection signal="pressed" from="Control/CommercialAd" to="Control" method="_on_commercial_ad_pressed"]
