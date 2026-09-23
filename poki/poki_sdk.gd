@@ -13,6 +13,8 @@ signal rewarded_break_failed(error: Variant)
 var _sdk = null
 var _retained_callbacks = [] #keeps callbacks alive, so that they are not garbage collected
 
+var is_gameplay_started := false
+
 func _ready():
 	fetch_sdk()
 
@@ -29,14 +31,18 @@ func is_available() -> bool:
 
 func gameplay_start():
 	if !is_available(): return
+	if is_gameplay_started: return
 
 	_sdk.gameplayStart()
+	is_gameplay_started = true
 
 
 func gameplay_stop():
 	if !is_available(): return
+	if !is_gameplay_started: return
 
 	_sdk.gameplayStop()
+	is_gameplay_started = false
 
 
 func commercial_break(on_start: Callable = Callable()):
@@ -64,14 +70,14 @@ func rewarded_break(on_start_or_params = null):
 		rewarded_break_done.emit(false)
 		return
 
-	var promise = null
-
 	var resolve = _javascript_callback(func(args: Array):
 		rewarded_break_done.emit(bool(args[0]) if not args.is_empty() else false)
 	)
 	var reject = _javascript_callback(func(args: Array):
 		rewarded_break_failed.emit(args[0] if not args.is_empty() else "Unknown Poki error whilst rewarded break")
 	)
+
+	var promise = null
 
 	if on_start_or_params is Callable and on_start_or_params.is_valid():
 		var start = _javascript_callback(func(_args: Array): on_start_or_params.call())
