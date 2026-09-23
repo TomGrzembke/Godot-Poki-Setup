@@ -48,7 +48,7 @@ func commercial_break(on_start: Callable = Callable()):
 
 	var resolve = _javascript_callback(func(_args: Array): commercial_break_done.emit(null))
 
-	var reject = _javascript_callback(func(args: Array):commercial_break_failed.emit(args[0] if not args.is_empty() else "Unknown Poki error"))
+	var reject = _javascript_callback(func(args: Array): commercial_break_failed.emit(args[0] if not args.is_empty() else "Unknown Poki error"))
 
 	var promise = null
 
@@ -59,10 +59,6 @@ func commercial_break(on_start: Callable = Callable()):
 		promise = _sdk.commercialBreak()
 
 	promise.then(resolve, reject)
-
-
-func commercialBreak(on_start: Callable = Callable()):
-	commercial_break(on_start)
 
 
 func rewarded_break(on_start_or_params = null):
@@ -88,32 +84,22 @@ func rewarded_break(on_start_or_params = null):
 		promise = _sdk.rewardedBreak(params)
 	else:
 		promise = _sdk.rewardedBreak()
+
 	promise.then(resolve, reject)
 
 
-func rewardedBreak(on_start_or_params = null) :
-	rewarded_break(on_start_or_params)
-
-
 func measure(category: String, what: String, action: String):
-	if is_available():
-		_sdk.measure(category, what, action)
+	if not is_available(): return
+
+	_sdk.measure(category, what, action)
 
 
 func get_url_param(key: String) -> Variant:
 	return _sdk.getURLParam(key) if is_available() else null
 
 
-func getURLParam(key: String) -> Variant:
-	return get_url_param(key)
-
-
 func is_ad_blocked() -> bool:
 	return bool(_sdk.isAdBlocked()) if is_available() else false
-
-
-func isAdBlocked() -> bool:
-	return is_ad_blocked()
 
 
 func _javascript_callback(callback: Callable):
