@@ -45,6 +45,22 @@ func gameplay_stop():
 	is_gameplay_started = false
 
 
+func measure(category: String, what: String, action: String):
+	if !is_available(): return
+
+	_sdk.measure(category, what, action)
+
+
+func get_url_param(key: String) -> Variant:
+	return _sdk.getURLParam(key) if is_available() else null
+
+
+func is_ad_blocked() -> bool:
+	if !is_available(): return false
+
+	return bool(_sdk.isAdBlocked())
+
+
 func commercial_break(on_start: Callable = Callable()):
 	if !is_available():
 		commercial_break_done.emit(null)
@@ -103,22 +119,6 @@ func get_rewarded_break_promise(on_start_or_params = null):
 		return _sdk.rewardedBreak(params)
 
 	return _sdk.rewardedBreak()
-
-
-func measure(category: String, what: String, action: String):
-	if !is_available(): return
-
-	_sdk.measure(category, what, action)
-
-
-func get_url_param(key: String) -> Variant:
-	return _sdk.getURLParam(key) if is_available() else null
-
-
-func is_ad_blocked() -> bool:
-	if !is_available(): return false
-
-	return bool(_sdk.isAdBlocked())
 
 
 func _javascript_callback(callback: Callable):
