@@ -23,12 +23,6 @@ func is_available() -> bool:
 	return _sdk != null
 
 
-func game_loading_finished():
-	if not is_available(): return
-
-	_sdk.gameLoadingFinished()
-
-
 func gameplay_start():
 	if not is_available(): return
 
