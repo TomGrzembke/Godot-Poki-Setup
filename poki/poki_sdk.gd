@@ -11,10 +11,14 @@ signal rewarded_break_done(reward_granted: bool)
 signal rewarded_break_failed(error: Variant)
 
 var _sdk = null
-var _retained_callbacks = []
+var _retained_callbacks = [] #keeps callbacks alive, so that they are not garbage collected
 
 func _ready():
-	if not OS.has_feature("web"): return
+	fetch_sdk()
+
+
+func fetch_sdk():
+	if !OS.has_feature("web"): return
 
 	_sdk = JavaScriptBridge.get_interface(SDK_NAME)
 
@@ -24,19 +28,19 @@ func is_available() -> bool:
 
 
 func gameplay_start():
-	if not is_available(): return
+	if !is_available(): return
 
 	_sdk.gameplayStart()
 
 
 func gameplay_stop():
-	if not is_available(): return
+	if !is_available(): return
 
 	_sdk.gameplayStop()
 
 
 func commercial_break(on_start: Callable = Callable()):
-	if not is_available():
+	if !is_available():
 		commercial_break_done.emit(null)
 		return
 
@@ -56,17 +60,19 @@ func commercial_break(on_start: Callable = Callable()):
 
 
 func rewarded_break(on_start_or_params = null):
-	if not is_available():
+	if !is_available():
 		rewarded_break_done.emit(false)
 		return
+
+	var promise = null
 
 	var resolve = _javascript_callback(func(args: Array):
 		rewarded_break_done.emit(bool(args[0]) if not args.is_empty() else false)
 	)
 	var reject = _javascript_callback(func(args: Array):
-		rewarded_break_failed.emit(args[0] if not args.is_empty() else "Unknown Poki error")
+		rewarded_break_failed.emit(args[0] if not args.is_empty() else "Unknown Poki error whilst rewarded break")
 	)
-	var promise = null
+
 	if on_start_or_params is Callable and on_start_or_params.is_valid():
 		var start = _javascript_callback(func(_args: Array): on_start_or_params.call())
 		promise = _sdk.rewardedBreak(start)
@@ -83,7 +89,7 @@ func rewarded_break(on_start_or_params = null):
 
 
 func measure(category: String, what: String, action: String):
-	if not is_available(): return
+	if !is_available(): return
 
 	_sdk.measure(category, what, action)
 
@@ -93,7 +99,9 @@ func get_url_param(key: String) -> Variant:
 
 
 func is_ad_blocked() -> bool:
-	return bool(_sdk.isAdBlocked()) if is_available() else false
+	if !is_available(): return false
+
+	return bool(_sdk.isAdBlocked())
 
 
 func _javascript_callback(callback: Callable):
