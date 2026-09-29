@@ -1,4 +1,5 @@
 # Poki Godot Setup 
+This Repo contains a Godot 4.7 Godot project, with a basic setup to access the poki SDK via a .gd and .html script.
 
 Tutorial for making Poki integration work without cloning this:
 1. Import [poki_sdk.gd](https://github.com/TomGrzembke/Godot-Poki-Setup/blob/main/poki/poki_sdk.gd) to your desired location; this will be what you work with later
